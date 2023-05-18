@@ -21,12 +21,13 @@ model Tweet {
   likes Like[]
 
   @@index([userId])
+  @@unique([createdAt, id])
 }
 
 model Like {
   // id String @id @default((uuid()))
   userId  String
-  tweetId String
+  tweetId String // from a single tweet, the tweetId would be the same cuz it's liking the same tweet, but userId is diff cuz diff users liked the same tweet
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   Tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
