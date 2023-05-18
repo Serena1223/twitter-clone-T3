@@ -3,6 +3,7 @@ import { ProfileImage } from "./ProfileImage";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { VscHeart, VscHeartFilled } from "react-icons/vsc";
+import { api } from "~/utils/api";
 
 type Tweet = {
   id: string;
@@ -65,6 +66,11 @@ function TweetCard({
   likeCount,
   likedByMe,
 }: Tweet) {
+  const toggleLike = api.tweet.toggleLike.useMutation();
+
+  function handleToggleLike() {
+    toggleLike.mutate({ id });
+  }
   return (
     <li className="flex gap-4 border-b px-4 py-4">
       <Link href={`/profiles/${user.id}`}>
@@ -84,18 +90,30 @@ function TweetCard({
           </span>
         </div>
         <p className="whitespace-pre-wrap">{content}</p>
-        <HeartButton likedByMe={likedByMe} likeCount={likeCount} />
+        <HeartButton
+          onClick={handleToggleLike}
+          isLoading={toggleLike.isLoading}
+          likedByMe={likedByMe}
+          likeCount={likeCount}
+        />
       </div>
     </li>
   );
 }
 
 type HeartButtonProps = {
+  onClick: () => void;
+  isLoading: boolean;
   likedByMe: boolean;
   likeCount: number;
 };
 
-function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
+function HeartButton({
+  isLoading,
+  onClick,
+  likedByMe,
+  likeCount,
+}: HeartButtonProps) {
   const session = useSession();
   const HeartIcon = likedByMe ? VscHeartFilled : VscHeart;
 
@@ -108,13 +126,9 @@ function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
     );
   }
   return (
-    // this is the place holder heart. We want to make the stuff for if you're actually logged in
-    // <div className="item-center mb-1 mt-1 flex gap-3 self-start text-gray-500">
-    //   <HeartIcon />
-    //   <span>{likeCount}</span>
-    // </div>
-    // if you're logged in
     <button
+      disabled={isLoading}
+      onClick={onClick}
       className={`items-centere group flex gap-1 self-start transition-colors duration-200 ${
         likedByMe
           ? "text-red-500"
@@ -127,8 +141,8 @@ function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
             ? "fill-red-500"
             : "fill-gray-500 group-hover:fill-red-500 group-focus-visible:fill-red-500"
         }`}
-        />
-        <span>{likeCount}</span>
+      />
+      <span>{likeCount}</span>
     </button>
   );
 }
